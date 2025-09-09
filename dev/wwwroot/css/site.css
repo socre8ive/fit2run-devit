@@ -1,0 +1,403 @@
+/* Microsoft Fluent Design inspired styles */
+:root {
+    --primary-color: #0078d4;
+    --primary-dark: #106ebe;
+    --accent-color: #00bcf2;
+    --success-color: #107c10;
+    --warning-color: #ff8c00;
+    --error-color: #d13438;
+    --neutral-light: #faf9f8;
+    --neutral-lighter: #f3f2f1;
+    --neutral-quaternary: #e1dfdd;
+    --neutral-tertiary: #a19f9d;
+    --neutral-secondary: #605e5c;
+    --neutral-primary: #323130;
+    --white: #ffffff;
+    --shadow-depth-4: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
+    --shadow-depth-8: 0 3.2px 7.2px 0 rgba(0,0,0,0.132), 0 0.6px 1.8px 0 rgba(0,0,0,0.108);
+}
+
+/* Base styling */
+body {
+    font-family: 'Segoe UI', system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+    background-color: var(--neutral-light);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styling */
+.header-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--neutral-quaternary);
+    box-shadow: var(--shadow-depth-4);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.ms-CommandBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    height: 44px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    margin-right: 32px;
+}
+
+.logo-section .ms-Icon {
+    font-size: 24px;
+    color: var(--primary-color);
+    margin-right: 12px;
+}
+
+.app-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--neutral-primary);
+}
+
+/* Navigation styling */
+.main-nav {
+    display: flex;
+    gap: 24px;
+    flex-grow: 1;
+}
+
+.nav-group {
+    position: relative;
+}
+
+.nav-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--neutral-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 4px;
+    display: block;
+    border-bottom: 1px solid var(--neutral-quaternary);
+    margin-bottom: 4px;
+}
+
+.nav-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    background: var(--white);
+    border: 1px solid var(--neutral-quaternary);
+    border-radius: 2px;
+    box-shadow: var(--shadow-depth-8);
+    z-index: 1001;
+}
+
+.nav-group:hover .nav-items {
+    display: block;
+}
+
+.nav-items li {
+    border-bottom: 1px solid var(--neutral-lighter);
+}
+
+.nav-items li:last-child {
+    border-bottom: none;
+}
+
+.nav-items a {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--neutral-primary);
+    transition: background-color 0.1s ease;
+}
+
+.nav-items a:hover {
+    background-color: var(--neutral-lighter);
+    color: var(--primary-color);
+}
+
+.nav-items a i {
+    margin-right: 12px;
+    width: 16px;
+}
+
+/* Status indicators */
+.status-indicators {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-healthy {
+    color: var(--success-color);
+}
+
+/* Main content area */
+.main-content {
+    flex-grow: 1;
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Cards and panels */
+.dashboard-card {
+    background: var(--white);
+    border: 1px solid var(--neutral-quaternary);
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-depth-4);
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--neutral-primary);
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+}
+
+.card-title .ms-Icon {
+    margin-right: 12px;
+    color: var(--primary-color);
+}
+
+/* Buttons */
+.ms-Button {
+    border: 1px solid var(--neutral-quaternary);
+    background: var(--white);
+    color: var(--neutral-primary);
+    padding: 8px 16px;
+    border-radius: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ms-Button:hover {
+    background: var(--neutral-lighter);
+    border-color: var(--neutral-tertiary);
+}
+
+.ms-Button--primary {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.ms-Button--primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* Tables */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: var(--shadow-depth-4);
+}
+
+.data-table th {
+    background: var(--neutral-lighter);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--neutral-primary);
+    border-bottom: 1px solid var(--neutral-quaternary);
+    font-size: 14px;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--neutral-lighter);
+    color: var(--neutral-primary);
+    font-size: 14px;
+}
+
+.data-table tr:hover {
+    background: var(--neutral-light);
+}
+
+/* Form controls */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--neutral-primary);
+    margin-bottom: 4px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--neutral-quaternary);
+    border-radius: 2px;
+    font-size: 14px;
+    color: var(--neutral-primary);
+    background: var(--white);
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+/* Loading states */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--neutral-quaternary);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Stats cards */
+.stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 16px !important;
+    margin-bottom: 24px;
+    width: 100% !important;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 2px;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: var(--shadow-depth-4);
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--neutral-secondary);
+    font-weight: 600;
+}
+
+.stat-change {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.stat-change.positive {
+    color: var(--success-color);
+}
+
+.stat-change.negative {
+    color: var(--error-color);
+}
+
+/* Footer */
+.footer-bar {
+    background: var(--neutral-lighter);
+    border-top: 1px solid var(--neutral-quaternary);
+    padding: 16px 24px;
+    margin-top: auto;
+}
+
+.footer-text {
+    font-size: 12px;
+    color: var(--neutral-secondary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-nav {
+        display: none; /* Hide navigation on mobile - could implement hamburger menu */
+    }
+    
+    .ms-CommandBar {
+        padding: 0 16px;
+    }
+    
+    .main-content {
+        padding: 16px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin: 20px 0;
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-primary { color: var(--primary-color); }
+.text-success { color: var(--success-color); }
+.text-warning { color: var(--warning-color); }
+.text-error { color: var(--error-color); }
+.mb-0 { margin-bottom: 0; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }

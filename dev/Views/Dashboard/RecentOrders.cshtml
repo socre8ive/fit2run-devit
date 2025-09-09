@@ -1,0 +1,350 @@
+@{
+    ViewData["Title"] = "Recent Orders";
+}
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dashboard-title">Recent Orders</h1>
+                <p class="text-muted mb-1">Last 30 orders from Shopify</p>
+                <p class="text-muted small" id="lastRefresh" style="display: none;">Last updated: <span id="refreshTime"></span></p>
+            </div>
+            <div class="d-flex gap-3 align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                    <label class="form-check-label text-muted small" for="autoRefresh">
+                        Auto-refresh (30s)
+                    </label>
+                </div>
+                <button id="refreshButton" class="btn btn-primary">
+                    <i class="fluent-icon">🔄</i> Refresh Now
+                </button>
+                <button onclick="window.location.href='/'" class="btn btn-outline-secondary">
+                    <i class="fluent-icon">🏠</i> Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="errorAlert" class="alert alert-danger" style="display: none;">
+        <span id="errorMessage"></span>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="dashboard-card text-center py-5">
+        <div class="loading-spinner mb-3"></div>
+        <div class="text-muted">Loading recent orders...</div>
+    </div>
+
+    <!-- Orders Table -->
+    <div id="ordersTable" class="dashboard-card" style="display: none;">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-uppercase small fw-semibold text-muted">Order #</th>
+                        <th class="text-uppercase small fw-semibold text-muted">Date</th>
+                        <th class="text-uppercase small fw-semibold text-muted">Customer</th>
+                        <th class="text-uppercase small fw-semibold text-muted">Items Purchased</th>
+                        <th class="text-uppercase small fw-semibold text-muted">Subtotal</th>
+                        <th class="text-uppercase small fw-semibold text-muted">Fulfillment Location</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody">
+                    <!-- Dynamic content -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Footer -->
+        <div id="ordersFooter" class="border-top bg-light px-3 py-2" style="display: none;">
+            <div class="text-muted small">
+                Showing <span id="orderCount">0</span> most recent orders
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.dashboard-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+    border-top-color: #0078d4;
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.fluent-icon {
+    margin-right: 0.25rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.status-paid { background-color: #dcfce7; color: #166534; }
+.status-pending { background-color: #fef3c7; color: #92400e; }
+.status-refunded { background-color: #fee2e2; color: #991b1b; }
+.status-voided { background-color: #f3f4f6; color: #374151; }
+.status-authorized { background-color: #dbeafe; color: #1e40af; }
+
+.table th {
+    border-bottom: 2px solid #e5e7eb;
+    padding: 1rem 0.75rem;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #0078d4;
+    border-color: #0078d4;
+}
+
+.btn-primary:hover {
+    background-color: #106ebe;
+    border-color: #106ebe;
+}
+
+.btn-outline-secondary {
+    color: #6b7280;
+    border-color: #d1d5db;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+</style>
+
+<script>
+let autoRefreshInterval;
+let lastRefreshTime = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial load
+    fetchOrders();
+    
+    // Set up auto-refresh
+    setupAutoRefresh();
+    
+    // Event listeners
+    document.getElementById('refreshButton').addEventListener('click', fetchOrders);
+    document.getElementById('autoRefresh').addEventListener('change', function() {
+        setupAutoRefresh();
+    });
+});
+
+async function fetchOrders() {
+    try {
+        showLoading(true);
+        hideError();
+        
+        // Add cache-busting parameters
+        const cacheBuster = Date.now();
+        const randomId = Math.random().toString(36).substring(7);
+        
+        const response = await fetch(`/dev/api/RecentOrders?t=${cacheBuster}&rid=${randomId}`, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayOrders(data.orders);
+            updateRefreshTime();
+            hideError();
+        } else {
+            showError(data.error || 'Failed to fetch orders');
+        }
+    } catch (err) {
+        console.error('Fetch error:', err);
+        showError('Error connecting to server');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function displayOrders(orders) {
+    const tbody = document.getElementById('ordersBody');
+    const ordersTable = document.getElementById('ordersTable');
+    const ordersFooter = document.getElementById('ordersFooter');
+    const orderCount = document.getElementById('orderCount');
+    
+    tbody.innerHTML = '';
+    
+    if (orders.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">No orders found</td>
+            </tr>
+        `;
+        ordersFooter.style.display = 'none';
+    } else {
+        orders.forEach(order => {
+            const row = createOrderRow(order);
+            tbody.appendChild(row);
+        });
+        
+        orderCount.textContent = orders.length;
+        ordersFooter.style.display = 'block';
+    }
+    
+    ordersTable.style.display = 'block';
+}
+
+function createOrderRow(order) {
+    const row = document.createElement('tr');
+    
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+    
+    const formatCurrency = (amount, currency = 'USD') => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency
+        }).format(amount);
+    };
+    
+    const getStatusBadge = (status) => {
+        const statusClass = `status-${status.toLowerCase().replace(/[^a-z]/g, '')}`;
+        return `<span class="status-badge ${statusClass}">${status}</span>`;
+    };
+    
+    row.innerHTML = `
+        <td>
+            <div class="fw-medium">${order.orderNumber}</div>
+            <div class="text-muted small">ID: ${order.id}</div>
+        </td>
+        <td class="text-nowrap">
+            ${formatDate(order.createdAt)}
+        </td>
+        <td>
+            <div>${order.email}</div>
+        </td>
+        <td>
+            <div class="small">${order.itemsSummary}</div>
+            ${order.items.length > 0 ? `<div class="text-muted" style="font-size: 0.75rem;">${order.items.length} item${order.items.length !== 1 ? 's' : ''} total</div>` : ''}
+        </td>
+        <td class="text-nowrap">
+            <div class="fw-medium">${formatCurrency(order.subtotal, order.currency)}</div>
+            ${order.total !== order.subtotal ? `<div class="text-muted small">Total: ${formatCurrency(order.total, order.currency)}</div>` : ''}
+        </td>
+        <td>
+            <div>
+                ${order.fulfillmentLocationName || 
+                  (order.fulfillmentLocationId ? `Location ${order.fulfillmentLocationId}` : 
+                   '<span class="text-muted fst-italic">Not fulfilled</span>')}
+            </div>
+            ${order.fulfillmentStatus ? `<div class="text-muted small">${order.fulfillmentStatus}</div>` : ''}
+        </td>
+    `;
+    
+    return row;
+}
+
+function setupAutoRefresh() {
+    // Clear existing interval
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    
+    // Set up new interval if auto-refresh is enabled
+    const autoRefreshCheckbox = document.getElementById('autoRefresh');
+    if (autoRefreshCheckbox.checked) {
+        autoRefreshInterval = setInterval(fetchOrders, 30000); // 30 seconds
+    }
+}
+
+function updateRefreshTime() {
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('refreshTime').textContent = now;
+    document.getElementById('lastRefresh').style.display = 'block';
+    lastRefreshTime = now;
+}
+
+function showLoading(show) {
+    const loadingState = document.getElementById('loadingState');
+    const ordersTable = document.getElementById('ordersTable');
+    
+    if (show) {
+        loadingState.style.display = 'block';
+        ordersTable.style.display = 'none';
+    } else {
+        loadingState.style.display = 'none';
+    }
+}
+
+function showError(message) {
+    const errorAlert = document.getElementById('errorAlert');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    errorMessage.textContent = message;
+    errorAlert.style.display = 'block';
+}
+
+function hideError() {
+    const errorAlert = document.getElementById('errorAlert');
+    errorAlert.style.display = 'none';
+}
+</script>

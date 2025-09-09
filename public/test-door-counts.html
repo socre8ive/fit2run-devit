@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Door Counts Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .controls { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .controls div { display: inline-block; margin-right: 20px; }
+        button { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+        .results { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        .store { border: 1px solid #e5e5e5; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
+        .store-name { font-weight: bold; font-size: 18px; }
+        .entries { color: #2563eb; font-size: 24px; font-weight: bold; float: right; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SoLink Door Counts - Direct Test</h1>
+        
+        <div class="controls">
+            <div>
+                <label>Store: </label>
+                <select id="store">
+                    <option value="all">All Stores</option>
+                    <option value="tampa">Tampa</option>
+                    <option value="utc">UTC</option>
+                    <option value="tyrone">Tyrone</option>
+                    <option value="perimeter">Perimeter</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Start: </label>
+                <input type="date" id="startDate" value="2025-08-12">
+            </div>
+            
+            <div>
+                <label>End: </label>
+                <input type="date" id="endDate" value="2025-08-15">
+            </div>
+            
+            <button onclick="loadData()">Get Door Counts</button>
+        </div>
+        
+        <div class="results" id="results">
+            Click "Get Door Counts" to load data
+        </div>
+    </div>
+
+    <script>
+        function loadData() {
+            const store = document.getElementById('store').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const resultsDiv = document.getElementById('results');
+            
+            resultsDiv.innerHTML = 'Loading...';
+            
+            const url = `/api/solink-door-counts?store=${store}&startDate=${startDate}&endDate=${endDate}`;
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
+                    
+                    if (data.length === 0) {
+                        resultsDiv.innerHTML = 'No data found for selected criteria';
+                        return;
+                    }
+                    
+                    let html = '<h2>Results:</h2>';
+                    data.forEach(store => {
+                        html += `
+                            <div class="store">
+                                <span class="entries">${store.total_entries} entries</span>
+                                <div class="store-name">${store.store_name.toUpperCase()}</div>
+                                <div>${store.total_events} events</div>
+                            </div>
+                        `;
+                    });
+                    
+                    resultsDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultsDiv.innerHTML = 'Error: ' + error.message;
+                });
+        }
+    </script>
+</body>
+</html>

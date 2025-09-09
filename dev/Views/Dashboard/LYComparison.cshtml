@@ -1,0 +1,468 @@
+@{
+    ViewData["Title"] = "Last Year Comparison";
+}
+
+<div class="dashboard-card">
+    <h1 class="card-title">
+        <span class="ms-Icon ms-Icon--AnalyticsReport" aria-hidden="true"></span>
+        Last Year Comparison
+    </h1>
+    <p>Compare UPC-level sales performance vs last year with proper product names (Display_Name/Description)</p>
+    
+    <!-- Filters -->
+    <div class="dashboard-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Comparison Type</label>
+                <select id="comparisonType" class="form-select">
+                    <option value="single">Single Date</option>
+                    <option value="range">Date Range</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6" id="singleDateContainer">
+                <label class="form-label fw-semibold">Date</label>
+                <input type="date" id="singleDate" class="form-control" value="2025-08-25">
+                <small class="text-muted">Compares to same date in 2024</small>
+            </div>
+            <div class="col-lg-3 col-md-6" id="startDateContainer" style="display: none;">
+                <label class="form-label fw-semibold">Start Date</label>
+                <input type="date" id="startDate" class="form-control" value="2025-08-01">
+                <small class="text-muted">Compares to same period in 2024</small>
+            </div>
+            <div class="col-lg-3 col-md-6" id="endDateContainer" style="display: none;">
+                <label class="form-label fw-semibold">End Date</label>
+                <input type="date" id="endDate" class="form-control" value="2025-08-25">
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Store</label>
+                <select id="stores" class="form-select">
+                    <option value="all_stores">All Stores</option>
+                    <option value="ecom">E-Commerce</option>
+                    <option value="disneysprings">Disney Springs</option>
+                    <option value="tampa">Tampa</option>
+                    <option value="altamonte">Altamonte</option>
+                    <option value="mallofgeorgia">Mall of Georgia</option>
+                    <option value="clearwater">Clearwater</option>
+                    <option value="tyrone">Tyrone</option>
+                    <option value="coconutcreek">Coconut Creek</option>
+                    <option value="brandon">Brandon</option>
+                    <option value="celebration">Celebration</option>
+                    <option value="coastland">Coastland</option>
+                    <option value="coconutpoint">Coconut Point</option>
+                    <option value="stpete">St Pete</option>
+                    <option value="palmbeachgardens">Palm Beach Gardens</option>
+                    <option value="waterford">Waterford</option>
+                    <option value="wellington">Wellington</option>
+                    <option value="wiregrass">Wiregrass</option>
+                    <option value="millenia">Millenia</option>
+                    <option value="ellenton">Ellenton</option>
+                    <option value="bradenton">Bradenton</option>
+                    <option value="sarasota">Sarasota</option>
+                    <option value="melbourne">Melbourne</option>
+                    <option value="orangepark">Orange Park</option>
+                    <option value="paddockmall">Paddock Mall</option>
+                    <option value="perimeter">Perimeter</option>
+                    <option value="pierpark">Pier Park</option>
+                    <option value="utc">UTC</option>
+                    <option value="countryside">Countryside</option>
+                    <option value="daniapointe">Dania Pointe</option>
+                    <option value="aventura">Aventura</option>
+                    <option value="flamingo">Flamingo</option>
+                    <option value="keywest">Key West</option>
+                    <option value="destin">Destin</option>
+                    <option value="ftmyersoutlet">Ft Myers Outlet</option>
+                    <option value="treasurecoast">Treasure Coast</option>
+                    <option value="oldstpete">Old St Pete</option>
+                    <option value="avenues">Avenues</option>
+                    <option value="cordova">Cordova</option>
+                    <option value="augusta">Augusta</option>
+                    <option value="6laps">6 Laps</option>
+                    <option value="gardens">Gardens</option>
+                    <option value="sanjuan">San Juan (PR)</option>
+                    <option value="barceloneta">Barceloneta (PR)</option>
+                    <option value="mayaguez">Mayaguez (PR)</option>
+                    <option value="fajardo">Fajardo (PR)</option>
+                    <option value="plazacarolina">Plaza Carolina (PR)</option>
+                    <option value="plazadelcaribe">Plaza del Caribe (PR)</option>
+                    <option value="plazadelsol">Plaza del Sol (PR)</option>
+                    <option value="carolina">Carolina (PR)</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Vendor</label>
+                <select id="vendors" class="form-select">
+                    <option value="all">All Vendors</option>
+                    <!-- Vendors will be populated dynamically -->
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Category</label>
+                <select id="categories" class="form-select">
+                    <option value="all">All Categories</option>
+                    <!-- Categories will be populated dynamically -->
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <button id="generateReport" class="btn btn-primary w-100">
+                    <i class="fas fa-play me-1"></i> Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" style="display: none; text-align: center; padding: 40px;">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 16px;">Loading comparison data...</p>
+    </div>
+
+    <!-- Error display -->
+    <div id="errorDisplay" class="dashboard-card" style="display: none; background-color: #fff4ce; border-left: 4px solid var(--warning-color);">
+        <h3 style="color: var(--warning-color);">
+            <span class="ms-Icon ms-Icon--Warning"></span>
+            Error Loading Data
+        </h3>
+        <p id="errorMessage">An error occurred while loading the comparison data.</p>
+    </div>
+
+    <!-- Brand Summary (when vendor is selected) -->
+    <div id="brandSummarySection" style="display: none;" class="mb-4">
+        <div class="dashboard-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2 class="card-title mb-16" style="color: white;">🏆 Brand Performance Summary</h2>
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%;">
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="stat-value" id="brandThisYear" style="color: white;">$0</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.9);">This Year Sales</div>
+                    <div class="stat-change" id="brandThisYearUnits" style="color: rgba(255,255,255,0.8);">0 units</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="stat-value" id="brandLastYear" style="color: white;">$0</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Last Year Sales</div>
+                    <div class="stat-change" id="brandLastYearUnits" style="color: rgba(255,255,255,0.8);">0 units</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="stat-value" id="brandPercentChange" style="color: white;">0%</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Growth Rate</div>
+                    <div class="stat-change" id="brandDollarChange" style="color: rgba(255,255,255,0.8);">$0</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="stat-value" id="brandProducts" style="color: white;">0</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Unique Products</div>
+                    <div class="stat-change" id="brandCategory" style="color: rgba(255,255,255,0.8);">All Categories</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div id="summarySection" style="display: none;">
+        <h2 class="card-title mb-16">📊 Overall Comparison Summary</h2>
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%;">
+            <div class="stat-card">
+                <div class="stat-value" id="thisYearSales">$0</div>
+                <div class="stat-label">This Year Sales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lastYearSales">$0</div>
+                <div class="stat-label">Last Year Sales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalChange">0%</div>
+                <div class="stat-label">Total Change</div>
+                <div class="stat-change" id="dollarChange">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalUPCs">0</div>
+                <div class="stat-label">Total UPCs</div>
+                <div class="stat-change">
+                    <span id="positiveUPCs" class="text-success">0 up</span> • 
+                    <span id="negativeUPCs" class="text-error">0 down</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div id="dataSection" style="display: none;">
+        <h2 class="card-title mb-16">
+            <span class="ms-Icon ms-Icon--Table" aria-hidden="true"></span>
+            UPC Performance Comparison
+        </h2>
+        <div style="overflow-x: auto;">
+            <table id="comparisonTable" class="data-table" style="font-size: 12px;">
+                <thead>
+                    <tr>
+                        <th>UPC</th>
+                        <th>Product Name</th>
+                        <th>Vendor</th>
+                        <th>Category</th>
+                        <th style="text-align: right;">This Year Sales</th>
+                        <th style="text-align: right;">Last Year Sales</th>
+                        <th style="text-align: right;">% Change</th>
+                        <th style="text-align: right;">$ Change</th>
+                        <th style="text-align: right;">This Year Units</th>
+                        <th style="text-align: right;">Last Year Units</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTableBody">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div id="instructionsSection">
+        <div style="text-align: center; padding: 40px;">
+            <span class="ms-Icon ms-Icon--AnalyticsReport" style="font-size: 48px; color: var(--primary-color); margin-bottom: 16px; display: block;"></span>
+            <h3>Generate Last Year Comparison Report</h3>
+            <p style="color: var(--neutral-secondary);">
+                Select date range and filters, then click "Generate Report" to compare UPC-level performance vs same period last year.
+            </p>
+            <p style="font-size: 12px; color: var(--neutral-tertiary);">
+                <span class="ms-Icon ms-Icon--Info"></span>
+                Real-time data analysis with comprehensive caching for fast results.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateReport');
+            generateBtn.addEventListener('click', generateLYComparison);
+            
+            // Handle comparison type change
+            const comparisonType = document.getElementById('comparisonType');
+            comparisonType.addEventListener('change', function() {
+                if (this.value === 'single') {
+                    document.getElementById('singleDateContainer').style.display = 'block';
+                    document.getElementById('startDateContainer').style.display = 'none';
+                    document.getElementById('endDateContainer').style.display = 'none';
+                } else {
+                    document.getElementById('singleDateContainer').style.display = 'none';
+                    document.getElementById('startDateContainer').style.display = 'block';
+                    document.getElementById('endDateContainer').style.display = 'block';
+                }
+            });
+            
+            // Load filter options
+            loadVendors();
+            loadCategories();
+        });
+
+        async function generateLYComparison() {
+            const comparisonType = document.getElementById('comparisonType').value;
+            const stores = document.getElementById('stores').value;
+            const vendors = document.getElementById('vendors').value;
+            const categories = document.getElementById('categories').value;
+
+            // Get dates based on comparison type
+            let startDate, endDate;
+            
+            if (comparisonType === 'single') {
+                const singleDate = document.getElementById('singleDate').value;
+                if (!singleDate) {
+                    alert('Please select a date.');
+                    return;
+                }
+                startDate = singleDate;
+                endDate = singleDate;
+            } else {
+                startDate = document.getElementById('startDate').value;
+                endDate = document.getElementById('endDate').value;
+                if (!startDate || !endDate) {
+                    alert('Please select both start and end dates.');
+                    return;
+                }
+                if (startDate > endDate) {
+                    alert('Start date must be before or equal to end date.');
+                    return;
+                }
+            }
+
+            // Show loading, hide other sections
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('errorDisplay').style.display = 'none';
+            document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('dataSection').style.display = 'none';
+            document.getElementById('instructionsSection').style.display = 'none';
+
+            try {
+                const params = new URLSearchParams({
+                    startDate: startDate,
+                    endDate: endDate,
+                    stores: stores,
+                    vendor: vendors,
+                    category: categories
+                });
+
+                const response = await fetch(`/dev/api/lycomparison?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                // Show brand summary if vendor is selected
+                if (result.brandSummary && vendors !== 'all') {
+                    displayBrandSummary(result.brandSummary);
+                }
+                
+                // Show overall summary
+                displaySummary(result.summary);
+                
+                // Show data table
+                displayDataTable(result.data);
+                
+            } catch (error) {
+                console.error('Error loading LY comparison:', error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('errorDisplay').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+            }
+        }
+
+        function displaySummary(summary) {
+            document.getElementById('thisYearSales').textContent = formatCurrency(summary.totalThisYear);
+            document.getElementById('lastYearSales').textContent = formatCurrency(summary.totalLastYear);
+            
+            const percentChange = summary.totalPercentageChange;
+            const dollarChange = summary.totalDollarChange;
+            
+            document.getElementById('totalChange').textContent = formatPercentage(percentChange);
+            document.getElementById('dollarChange').textContent = formatCurrency(dollarChange);
+            
+            // Color coding for changes
+            const changeElement = document.getElementById('totalChange');
+            const dollarElement = document.getElementById('dollarChange');
+            
+            if (percentChange > 0) {
+                changeElement.className = 'stat-value text-success';
+                dollarElement.className = 'stat-change positive';
+            } else if (percentChange < 0) {
+                changeElement.className = 'stat-value text-error';
+                dollarElement.className = 'stat-change negative';
+            } else {
+                changeElement.className = 'stat-value';
+                dollarElement.className = 'stat-change';
+            }
+            
+            document.getElementById('totalUPCs').textContent = summary.totalUPCs.toLocaleString();
+            document.getElementById('positiveUPCs').textContent = summary.positiveUPCs + ' up';
+            document.getElementById('negativeUPCs').textContent = summary.negativeUPCs + ' down';
+            
+            document.getElementById('summarySection').style.display = 'block';
+        }
+
+        function displayDataTable(data) {
+            const tbody = document.getElementById('comparisonTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                const percentClass = row.percentageChange > 0 ? 'text-success' : 
+                                   row.percentageChange < 0 ? 'text-error' : '';
+                
+                tr.innerHTML = `
+                    <td><code>${row.upc}</code></td>
+                    <td><strong>${row.productName}</strong></td>
+                    <td>${row.vendor}</td>
+                    <td><span class="ms-Icon ms-Icon--Tag"></span> ${row.category}</td>
+                    <td style="text-align: right;">${formatCurrency(row.thisYearSales)}</td>
+                    <td style="text-align: right;">${formatCurrency(row.lastYearSales)}</td>
+                    <td style="text-align: right;" class="${percentClass}"><strong>${formatPercentage(row.percentageChange)}</strong></td>
+                    <td style="text-align: right;" class="${percentClass}">${formatCurrency(row.dollarChange)}</td>
+                    <td style="text-align: right;">${row.thisYearUnits.toLocaleString()}</td>
+                    <td style="text-align: right;">${row.lastYearUnits.toLocaleString()}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('dataSection').style.display = 'block';
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatPercentage(value) {
+            const sign = value >= 0 ? '+' : '';
+            return `${sign}${value.toFixed(1)}%`;
+        }
+
+        function displayBrandSummary(brandSummary) {
+            document.getElementById('brandThisYear').textContent = formatCurrency(brandSummary.thisYearSales);
+            document.getElementById('brandLastYear').textContent = formatCurrency(brandSummary.lastYearSales);
+            document.getElementById('brandThisYearUnits').textContent = brandSummary.thisYearUnits.toLocaleString() + ' units';
+            document.getElementById('brandLastYearUnits').textContent = brandSummary.lastYearUnits.toLocaleString() + ' units';
+            
+            const percentChange = brandSummary.percentageChange;
+            const dollarChange = brandSummary.dollarChange;
+            
+            document.getElementById('brandPercentChange').textContent = formatPercentage(percentChange);
+            document.getElementById('brandDollarChange').textContent = formatCurrency(dollarChange);
+            
+            // Color coding for changes
+            const percentElement = document.getElementById('brandPercentChange');
+            const dollarElement = document.getElementById('brandDollarChange');
+            
+            if (percentChange > 0) {
+                percentElement.style.color = '#4ade80';
+                dollarElement.style.color = '#4ade80';
+            } else if (percentChange < 0) {
+                percentElement.style.color = '#f87171';
+                dollarElement.style.color = '#f87171';
+            }
+            
+            document.getElementById('brandProducts').textContent = brandSummary.uniqueProducts.toLocaleString();
+            document.getElementById('brandCategory').textContent = brandSummary.category;
+            
+            document.getElementById('brandSummarySection').style.display = 'block';
+        }
+
+        async function loadVendors() {
+            try {
+                const response = await fetch('/dev/api/lycomparison/vendors');
+                const vendors = await response.json();
+                
+                const vendorSelect = document.getElementById('vendors');
+                vendors.forEach(vendor => {
+                    const option = document.createElement('option');
+                    option.value = vendor;
+                    option.textContent = vendor;
+                    vendorSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading vendors:', error);
+            }
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/dev/api/lycomparison/categories');
+                const categories = await response.json();
+                
+                const categorySelect = document.getElementById('categories');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+    </script>
+}
